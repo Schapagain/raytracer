@@ -10,6 +10,7 @@ type PPM interface {
 	Magic() string
 	ImageSize() []int
 	MaxColor() int
+    String() string
 	Save(string) error
 }
 
@@ -38,7 +39,7 @@ func (p *ppm) Magic() string {
 
 // Save saves the PPM to the given filePath
 func (p *ppm) Save(filePath string) error {
-    return nil
+	return nil
 }
 
 // ImageSize returns the dimensions of the PPM
@@ -54,6 +55,11 @@ func (p *ppm) ImageSize() []int {
 func (p *ppm) MaxColor() int {
 	maxColor, _ := strconv.Atoi(p.header[2])
 	return maxColor
+}
+
+// String returns the string representation of the PPM
+func (p *ppm) String() string {
+	return strings.Join(p.header, "\n") + strings.Join(*p.dataLines, "\n")
 }
 
 // ImageData returns all lines containing pixel data in the PPM,
