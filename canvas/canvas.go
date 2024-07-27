@@ -18,6 +18,7 @@ type Canvas interface {
 	Height() int
 	PixelAt(int, int) (Color, error)
 	SetPixelAt(int, int, Color) error
+	ToPPM() PPM
 }
 
 type canvas struct {
