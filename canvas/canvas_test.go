@@ -13,6 +13,16 @@ func colorsAreEqual(c1, c2 Color) bool {
 		utils.FloatEqual(c1.A, c2.A)
 }
 
+// TestColorStringRepr checks if the string representation
+// of a color is valid
+func TestColorStringRepr(t *testing.T) {
+	c := Color{0.5, 1, 0, 1}
+	expS := "(0.500,1.000,0.000,1.000)"
+	if c.String() != expS {
+		t.Fatalf("Expected %s, but got %s", expS, c.String())
+	}
+}
+
 // TestColorAddition creates two colors
 // and checks if adding c1 and c2
 // returns the resulting color
@@ -59,7 +69,7 @@ func TestColorScale(t *testing.T) {
 	testCases := []struct {
 		name string
 		c    Color
-		s    float32
+		s    float64
 		expC Color
 	}{
 		{"all positive", Color{1, 1, 1, 1}, 3, Color{3, 3, 3, 3}},
@@ -77,4 +87,55 @@ func TestColorScale(t *testing.T) {
 		})
 
 	}
+}
+
+// TestNewCanvas creates a new canvas and checks
+// if the canvas is properly initialized
+func TestNewCanvas(t *testing.T) {
+	c := NewCanvas(100, 120)
+
+	t.Run("set height and width", func(t *testing.T) {
+		if c.Height() != 120 {
+			t.Fatalf("Expected canvas height to be %d, but got %d", 100, c.Height())
+		}
+		if c.Width() != 100 {
+			t.Fatalf("Expected canvas width to be %d, but got %d", 100, c.Width())
+		}
+
+	})
+	t.Run("read valid pixels", func(t *testing.T) {
+		firstPixel, err := c.PixelAt(0, 0)
+		if err == nil {
+			if !colorsAreEqual(firstPixel, Color{0, 0, 0, 0}) {
+				t.Fatalf("Expected first pixel to be %s, but got %s", Color{0, 0, 0, 0}, firstPixel)
+			}
+		} else {
+			t.Fatalf("No error expected accessing pixel at (0,0) but received error: %q", err)
+		}
+	})
+
+	t.Run("access invalid pixel", func(t *testing.T) {
+		_, err := c.PixelAt(600, 600)
+		if err == nil {
+			t.Fatalf("Expected to get error accessing out of bounds pixel, but got none")
+		}
+	})
+	t.Run("set valid pixel", func(t *testing.T) {
+		newColor := Color{1, 0, 0, 1}
+		err := c.SetPixelAt(0, 0, newColor)
+		if err != nil {
+			t.Fatalf("No error expected setting pixel at (0,0), but received error: %q", err)
+		} else {
+			changedPixel, _ := c.PixelAt(0, 0)
+			if !colorsAreEqual(changedPixel, newColor) {
+				t.Fatalf("Expected color at (0,0) to be %s, but got %s", newColor, changedPixel)
+			}
+		}
+	})
+	t.Run("set invalid pixel", func(t *testing.T) {
+		err := c.SetPixelAt(600, 600, Color{})
+		if err == nil {
+			t.Fatalf("Expected to get error setting out of bounds pixel, but got none")
+		}
+	})
 }
