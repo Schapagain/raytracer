@@ -1,6 +1,8 @@
 package canvas
 
 import (
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/schapagain/raytracer/utils"
@@ -138,4 +140,27 @@ func TestNewCanvas(t *testing.T) {
 			t.Fatalf("Expected to get error setting out of bounds pixel, but got none")
 		}
 	})
+}
+
+// TestCanvasToPPM creates a new canvas and checks if its
+// PPM representation is correct
+func TestCanvasToPPM(t *testing.T) {
+	c := NewCanvas(2, 3)
+
+	c.SetPixelAt(0, 1, Color{1, 0.5, 0, 1})
+	c.SetPixelAt(1, 2, Color{0, 0, 0.5, 1})
+
+	expPPMLines := []string{
+		PPMMagic,
+		"2 3",
+		strconv.Itoa(MaxColorValue),
+		"0 0 0 0 0 0 255 127 0 0 0 0 0 0 0",
+		"0 0 127",
+	}
+	expPPMString := strings.Join(expPPMLines, "\n")
+	ppmString := c.ToPPM().String()
+	if ppmString != expPPMString {
+		t.Fatalf("Expected ppm string to be:\n%q\nGot:\n%q:\n", expPPMString, ppmString)
+	}
+
 }
