@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/schapagain/raytracer/errors"
+	"github.com/schapagain/raytracer/utils"
 )
 
 type Color struct {
@@ -57,34 +58,39 @@ func (c *canvas) SetPixelAt(x, y int, color Color) error {
 	return nil
 }
 
+// clipColor clips R,G,B channels in color to fit in the low -> high range (inclusive)
+func clipColor(color *Color, lo, hi int) {
+	color.R = float64(utils.MaxInt(utils.MinInt((hi), int(color.R)), lo))
+	color.G = float64(utils.MaxInt(utils.MinInt((hi), int(color.G)), lo))
+	color.B = float64(utils.MaxInt(utils.MinInt((hi), int(color.B)), lo))
+}
+
 // ToPPM creates a new PPM format from the current canvas pixel data
 func (c *canvas) ToPPM() PPM {
-
-	maxPPMLineLength := 70
 	maxPixelCharLength := len(strconv.Itoa(MaxColorValue))*3 + 3
-	numPixelsInPPMLine := int(math.Floor(float64(maxPPMLineLength / maxPixelCharLength)))
-	numPPMLines := int(math.Ceil(float64(len(c.buffer) / int(numPixelsInPPMLine))))
-
+	numPixelsInPPMLine := int(math.Floor(float64(MaxPPMLineLength / maxPixelCharLength)))
+	numPPMLines := int(math.Ceil(float64(len(c.buffer)) / float64(numPixelsInPPMLine)))
 	ppmLines := make([]string, numPPMLines)
 	idx := 0
 	for {
 		if idx >= numPPMLines {
 			break
 		}
-		currPPMLinePixels := c.buffer[idx*numPixelsInPPMLine : idx*numPixelsInPPMLine+numPixelsInPPMLine]
+		currPPMLinePixels := c.buffer[idx*numPixelsInPPMLine : utils.MinInt(idx*numPixelsInPPMLine+numPixelsInPPMLine, len(c.buffer))]
 		currPPMLine := strings.Builder{}
 		for i := range currPPMLinePixels {
-			color := currPPMLinePixels[i]
-			r := int(math.Max(math.Min(float64(MaxColorValue), color.R*float64(MaxColorValue)), 0))
-			g := int(math.Max(math.Min(float64(MaxColorValue), color.G*float64(MaxColorValue)), 0))
-			b := int(math.Max(math.Min(float64(MaxColorValue), color.B*float64(MaxColorValue)), 0))
-			currPPMLine.WriteString(fmt.Sprintf("%d %d %d ", r, g, b))
+			color := currPPMLinePixels[i].Scale(float64(MaxColorValue))
+			clipColor(&color, 0, MaxColorValue)
+			pixelTemplate := " %d %d %d"
+			if i == 0 {
+				pixelTemplate = "%d %d %d"
+			}
+			currPPMLine.WriteString(fmt.Sprintf(pixelTemplate, int(color.R), int(color.G), int(color.B)))
 		}
-		ppmLines = append(ppmLines, currPPMLine.String())
+		ppmLines[idx] = currPPMLine.String()
 		idx++
 	}
-	p := NewPPM(c.height, c.width, MaxColorValue, &ppmLines)
-	return p
+	return NewPPM(c.width, c.height, MaxColorValue, &ppmLines)
 }
 
 // NewCanvas returns an empty canvas initialized with Color{0,0,0,0}
