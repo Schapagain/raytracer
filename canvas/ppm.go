@@ -1,7 +1,9 @@
 package canvas
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -11,7 +13,7 @@ type PPM interface {
 	ImageSize() []int
 	MaxColor() int
 	String() string
-    HeaderData() []string
+	HeaderData() []string
 	ImageData() *[]string
 	Save(string) error
 }
@@ -41,6 +43,18 @@ func (p *ppm) Magic() string {
 
 // Save saves the PPM to the given filePath
 func (p *ppm) Save(filePath string) error {
+	fo, err := os.Create(filePath)
+	if err != nil {
+		panic(err)
+	}
+	writer := bufio.NewWriter(fo)
+	for _, headerLine := range p.header {
+		writer.WriteString(headerLine + "\n")
+	}
+	for _, dataLine := range *p.dataLines {
+		writer.WriteString(dataLine + "\n")
+	}
+	writer.Flush()
 	return nil
 }
 
@@ -63,6 +77,7 @@ func (p *ppm) MaxColor() int {
 func (p *ppm) String() string {
 	return strings.Join(p.header, "\n") + "\n" + strings.Join(*p.dataLines, "\n")
 }
+
 // HeaderData returns all lines containing PPM header information
 func (p *ppm) HeaderData() []string {
 	return p.header
