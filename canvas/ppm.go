@@ -10,7 +10,9 @@ type PPM interface {
 	Magic() string
 	ImageSize() []int
 	MaxColor() int
-    String() string
+	String() string
+    HeaderData() []string
+	ImageData() *[]string
 	Save(string) error
 }
 
@@ -24,9 +26,9 @@ type ppm struct {
 // height, width and maxColorVal are used to build the header section of the PPM
 //
 // pixelData is used to construct the actual displayed data
-func NewPPM(height, width int, maxColorVal int, pixelData *[]string) PPM {
+func NewPPM(width, height int, maxColorVal int, pixelData *[]string) PPM {
 	return &ppm{
-		header:    []string{PPMMagic, fmt.Sprintf("%d %d", height, width), strconv.Itoa(maxColorVal)},
+		header:    []string{PPMMagic, fmt.Sprintf("%d %d", width, height), strconv.Itoa(maxColorVal)},
 		dataLines: pixelData,
 	}
 }
@@ -59,7 +61,11 @@ func (p *ppm) MaxColor() int {
 
 // String returns the string representation of the PPM
 func (p *ppm) String() string {
-	return strings.Join(p.header, "\n") + strings.Join(*p.dataLines, "\n")
+	return strings.Join(p.header, "\n") + "\n" + strings.Join(*p.dataLines, "\n")
+}
+// HeaderData returns all lines containing PPM header information
+func (p *ppm) HeaderData() []string {
+	return p.header
 }
 
 // ImageData returns all lines containing pixel data in the PPM,
