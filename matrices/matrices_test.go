@@ -3,6 +3,7 @@ package matrices
 import (
 	"testing"
 
+	"github.com/schapagain/raytracer/tuples"
 	"github.com/schapagain/raytracer/utils"
 )
 
@@ -315,6 +316,66 @@ func TestMultiply(t *testing.T) {
 						t.Fatalf("Expected product to be:\n%s\nbut, got:\n%s\n", expProd, prod)
 					}
 				}
+			}
+		})
+	}
+}
+
+// TestNewIdentityMatrix creates new identity matrices and
+// checks if compatible matrices and vectors multiplied with them
+// remain unchanged
+func Test3DIdentityMatrix(t *testing.T) {
+	iden3d, err := NewIdentityMatrix(3)
+	if err != nil {
+		t.Fatalf("No error expected when creating a 3x3 identity matrix")
+	} else {
+		colV := NewMatrixFromVector(tuples.Vector{X: -2, Y: 1.03, Z: 300})
+		mat, _ := NewMatrixFromSlice([][]float64{{-4, 1.03, 90}, {0, 0, -3}, {0.94, 0, 234}})
+		prod, _ := iden3d.Multiply(colV)
+		if !colV.IsEqualTo(prod) {
+			t.Fatalf("Expected\n%v\nto remain unchanged after multiplication with identity vector, but got:\n%v", colV, prod)
+		}
+		prod, _ = iden3d.Multiply(mat)
+		if !mat.IsEqualTo(prod) {
+			t.Fatalf("Expected\n%v\nto remain unchanged after multiplication with identity vector, but got:\n%v", mat, prod)
+		}
+	}
+}
+
+// TestTranspose checks if transposes of matrices are created correctly
+func TestTranspose(t *testing.T) {
+	testCases := []struct {
+		name     string
+		matA     [][]float64
+		expTrans [][]float64
+	}{
+		{
+			"row zero to column",
+			[][]float64{{0, 0, 0}},
+			[][]float64{{0}, {0}, {0}},
+		},
+		{
+			"column zero to row",
+			[][]float64{{0}, {0}, {0}},
+			[][]float64{{0, 0, 0}},
+		},
+		{
+			"identity matrix",
+			[][]float64{{1, 0}, {0, 1}},
+			[][]float64{{1, 0}, {0, 1}},
+		}, {
+			"column block to row",
+			[][]float64{{4, 3}, {1, -2}, {6.012, 7}, {9, 3.45}},
+			[][]float64{{4, 1, 6.012, 9}, {3, -2, 7, 3.45}},
+		},
+	}
+	for _, testCase := range testCases {
+		matA, _ := NewMatrixFromSlice(testCase.matA)
+		expTrans, _ := NewMatrixFromSlice(testCase.expTrans)
+		t.Run(testCase.name, func(t *testing.T) {
+			trans := matA.Transposed()
+			if !trans.IsEqualTo(expTrans) {
+				t.Fatalf("Expected transpose of\n%s\nto be:\n%s\nbut, got:\n%s\n", matA, expTrans, trans)
 			}
 		})
 	}
