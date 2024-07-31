@@ -71,11 +71,7 @@ func (c *canvas) ToPPM() PPM {
 	numPixelsInPPMLine := int(math.Floor(float64(MaxPPMLineLength / maxPixelCharLength)))
 	numPPMLines := int(math.Ceil(float64(len(c.buffer)) / float64(numPixelsInPPMLine)))
 	ppmLines := make([]string, numPPMLines)
-	idx := 0
-	for {
-		if idx >= numPPMLines {
-			break
-		}
+	for idx := 0; idx < numPPMLines; idx++ {
 		currPPMLinePixels := c.buffer[idx*numPixelsInPPMLine : utils.MinInt(idx*numPixelsInPPMLine+numPixelsInPPMLine, len(c.buffer))]
 		currPPMLine := strings.Builder{}
 		for i := range currPPMLinePixels {
@@ -88,7 +84,6 @@ func (c *canvas) ToPPM() PPM {
 			currPPMLine.WriteString(fmt.Sprintf(pixelTemplate, int(color.R), int(color.G), int(color.B)))
 		}
 		ppmLines[idx] = currPPMLine.String()
-		idx++
 	}
 	return NewPPM(c.width, c.height, MaxColorValue, &ppmLines)
 }
