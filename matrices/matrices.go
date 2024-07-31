@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/schapagain/raytracer/tuples"
 	"github.com/schapagain/raytracer/utils"
 )
 
@@ -18,6 +19,7 @@ type Matrix interface {
 	String() string
 	IsEqualTo(Matrix) bool
 	Multiply(Matrix) (Matrix, error)
+	Transposed() Matrix
 }
 
 type matrix struct {
@@ -32,6 +34,8 @@ var (
 )
 
 // NewMatrix returns a rows X cols matrix initialized with zeros
+//
+// It returns an error if either rows or cols is less than one
 func NewMatrix(rows, cols int) (Matrix, error) {
 	if rows < 1 || cols < 1 {
 		return nil, ErrInvalidInitialValues
@@ -43,7 +47,26 @@ func NewMatrix(rows, cols int) (Matrix, error) {
 	}, nil
 }
 
-// NewMatrixFromSlice
+// NewIdentityMatrix returns an identity matrix of the provided dimensions
+//
+// It returns an error if a new square matrix
+// cannot be created with the given dimensions
+func NewIdentityMatrix(dimensions int) (Matrix, error) {
+	mat, err := NewMatrix(dimensions, dimensions)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < dimensions; i++ {
+		mat.Set(i, i, 1)
+	}
+	return mat, nil
+}
+
+// NewMatrixFromSlice builds a new matrix from the provided 2D slice
+//
+// It returns an error if the built matrix
+// would have row or column count less than one
 func NewMatrixFromSlice(initialValues [][]float64) (Matrix, error) {
 	rows := len(initialValues)
 	if rows < 1 {
@@ -55,23 +78,19 @@ func NewMatrixFromSlice(initialValues [][]float64) (Matrix, error) {
 		return nil, err
 	}
 
-	rowNum := 0
-	for {
-		if rowNum >= rows {
-			break
-		}
-		colNum := 0
-		for {
-			if colNum >= cols {
-				break
-			}
+	for rowNum := 0; rowNum < rows; rowNum++ {
+		for colNum := 0; colNum < cols; colNum++ {
 			mat.Set(rowNum, colNum, initialValues[rowNum][colNum])
-			colNum++
 		}
-		rowNum++
 	}
 
 	return mat, nil
+}
+
+// NewMatrixFromVector returns a column matrix representation of v
+func NewMatrixFromVector(v tuples.Vector) Matrix {
+	mat, _ := NewMatrixFromSlice([][]float64{{v.X}, {v.Y}, {v.Z}})
+	return mat
 }
 
 // String returns the string representation of matrix m
@@ -129,13 +148,8 @@ func (m *matrix) GetCol(j int) ([]float64, error) {
 	}
 	jCol := make([]float64, m.Rows())
 
-	rowNum := 0
-	for {
-		if rowNum >= m.Rows() {
-			break
-		}
+	for rowNum := 0; rowNum < m.Rows(); rowNum++ {
 		jCol[rowNum] = m.data[rowNum*m.Cols()+j]
-		rowNum++
 	}
 
 	return jCol, nil
@@ -179,24 +193,27 @@ func (m1 *matrix) Multiply(m2 Matrix) (Matrix, error) {
 		return &matrix{}, ErrDimensionMismatch
 	}
 	productMat, _ := NewMatrix(m1.Rows(), m2.Cols())
-
-	colNum := 0
-	for {
-		if colNum >= productMat.Cols() {
-			break
-		}
-		rowNum := 0
+	for colNum := 0; colNum < productMat.Cols(); colNum++ {
 		currCol, _ := m2.GetCol(colNum)
-		for {
-			if rowNum >= productMat.Rows() {
-				break
-			}
+		for rowNum := 0; rowNum < productMat.Rows(); rowNum++ {
 			currRow, _ := m1.GetRow(rowNum)
 			dot, _ := utils.Dot(currCol, currRow)
 			productMat.Set(rowNum, colNum, dot)
-			rowNum++
 		}
-		colNum++
 	}
 	return productMat, nil
+}
+
+// Transposed returns a new matrix
+// built by swapping rows and columns of matrix m
+func (m *matrix) Transposed() Matrix {
+	mat, _ := NewMatrix(m.Cols(), m.Rows())
+
+	for i := 0; i < m.Rows(); i++ {
+		for j := 0; j < m.Cols(); j++ {
+			mVal, _ := m.Get(i, j)
+			mat.Set(j, i, mVal)
+		}
+	}
+	return mat
 }
