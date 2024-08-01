@@ -20,6 +20,7 @@ type Matrix interface {
 	IsEqualTo(Matrix) bool
 	Multiply(Matrix) (Matrix, error)
 	Transposed() Matrix
+	SubMatrix(int, int) (Matrix, error)
 }
 
 type matrix struct {
@@ -216,4 +217,26 @@ func (m *matrix) Transposed() Matrix {
 		}
 	}
 	return mat
+}
+
+// SubMatrix returns a copy of the matrix m with row and col removed
+func (m *matrix) SubMatrix(row, col int) (Matrix, error) {
+	if row < 0 || row >= m.Rows() || col < 0 || col >= m.Cols() || m.Rows() < 2 || m.Cols() < 2 {
+		return nil, ErrOutOfBounds
+	}
+	mat, _ := NewMatrix(m.Rows()-1, m.Cols()-1)
+	fmt.Printf("Start: %d %d\n", row, col)
+	ct := 0
+	for i := 0; i < m.Rows(); i++ {
+		if i != row {
+			for j := 0; j < m.Cols(); j++ {
+				if j != col {
+					mVal, _ := m.Get(i, j)
+					mat.Set(int(ct/mat.Cols()), ct%mat.Cols(), mVal)
+					ct++
+				}
+			}
+		}
+	}
+	return mat, nil
 }

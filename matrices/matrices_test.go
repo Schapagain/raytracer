@@ -380,3 +380,63 @@ func TestTranspose(t *testing.T) {
 		})
 	}
 }
+
+// TestSubMatrix checks if submatrices are computed correctly
+func TestSubMatrix(t *testing.T) {
+	testCases := []struct {
+		name   string
+		matA   [][]float64
+		args   []int
+		expSub [][]float64
+		expErr bool
+	}{
+		{
+			"zero matrix",
+			[][]float64{{0, 0, 0}, {0, 0, 0}},
+			[]int{0, 2},
+			[][]float64{{0, 0}},
+			false,
+		},
+		{
+			"remove first row and col",
+			[][]float64{{4, 3}, {1, -2}, {6.012, 7}, {9, 3.45}},
+			[]int{0, 0},
+			[][]float64{{-2}, {7}, {3.45}},
+			false,
+		},
+		{
+			"remove last row and col",
+			[][]float64{{4, 3, 0}, {1, -2, 12}, {0.99, 6.012, 7}},
+			[]int{2, 2},
+			[][]float64{{4, 3}, {1, -2}},
+			false,
+		},
+		{
+			"invalid submatrix",
+			[][]float64{{4, 3}, {1, -2}, {6.012, 7}, {9, 3.45}},
+			[]int{5, 1},
+			[][]float64{{-2}, {7}, {3.45}},
+			true,
+		},
+	}
+	for _, testCase := range testCases {
+		matA, _ := NewMatrixFromSlice(testCase.matA)
+		expSub, _ := NewMatrixFromSlice(testCase.expSub)
+		subMat, err := matA.SubMatrix(testCase.args[0], testCase.args[1])
+		if testCase.expErr {
+			if err == nil {
+				t.Fatalf("Expected error while extracting submatrix(%d,%d) of\n%s\n, but received none", testCase.args[0], testCase.args[1], matA)
+			}
+		} else {
+			if err != nil {
+				t.Fatalf("Expected no error while extracting submatrix(%d,%d) of\n%s\n, but received one: %q", testCase.args[0], testCase.args[1], matA, err)
+			} else {
+				t.Run(testCase.name, func(t *testing.T) {
+					if !subMat.IsEqualTo(expSub) {
+						t.Fatalf("Expected submatrix(%d,%d) of\n%s\nto be:\n%s\nbut, got:\n%s\n", testCase.args[0], testCase.args[1], matA, expSub, subMat)
+					}
+				})
+			}
+		}
+	}
+}
