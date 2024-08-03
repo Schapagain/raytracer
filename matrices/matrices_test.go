@@ -324,18 +324,18 @@ func TestMultiply(t *testing.T) {
 // TestNewIdentityMatrix creates new identity matrices and
 // checks if compatible matrices and vectors multiplied with them
 // remain unchanged
-func Test3DIdentityMatrix(t *testing.T) {
-	iden3d, err := NewIdentityMatrix(3)
+func Test4DIdentityMatrix(t *testing.T) {
+	iden4d, err := NewIdentityMatrix(4)
 	if err != nil {
 		t.Fatalf("No error expected when creating a 3x3 identity matrix")
 	} else {
-		colV := NewMatrixFromVector(tuples.Vector{X: -2, Y: 1.03, Z: 300})
-		mat, _ := NewMatrixFromSlice([][]float64{{-4, 1.03, 90}, {0, 0, -3}, {0.94, 0, 234}})
-		prod, _ := iden3d.Multiply(colV)
+		colV := NewMatrixFromVector(tuples.NewVector(-2, 1.03, 300))
+		mat, _ := NewMatrixFromSlice([][]float64{{-4, 1.03, 90, 8}, {0, 0, -3, -0.43}, {10, 0.94, 0, 234}, {10, 0.94, 0, 234}})
+		prod, _ := iden4d.Multiply(colV)
 		if !colV.IsEqualTo(prod) {
 			t.Fatalf("Expected\n%v\nto remain unchanged after multiplication with identity vector, but got:\n%v", colV, prod)
 		}
-		prod, _ = iden3d.Multiply(mat)
+		prod, _ = iden4d.Multiply(mat)
 		if !mat.IsEqualTo(prod) {
 			t.Fatalf("Expected\n%v\nto remain unchanged after multiplication with identity vector, but got:\n%v", mat, prod)
 		}
@@ -439,4 +439,123 @@ func TestSubMatrix(t *testing.T) {
 			}
 		}
 	}
+}
+
+// TestDet checks if determinants are properly calculated
+func TestDet(t *testing.T) {
+	testCases := []struct {
+		name   string
+		matA   [][]float64
+		expDet float64
+		expErr bool
+	}{
+		{
+			"rectangle matrix", [][]float64{{0, 0, 0.4}, {1.3, 0, 0}}, 0, true,
+		},
+		{
+			"2d zero matrix", [][]float64{{0, 0}, {0, 0}}, 0, false,
+		},
+		{
+			"2d identity matrix", [][]float64{{1, 0}, {0, 1}}, 1, false,
+		},
+		{
+			"2d non-zero matrix", [][]float64{{3.43, 1}, {2, 1}}, 1.43, false,
+		},
+		{
+			"3d identity matrix", [][]float64{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, 1, false,
+		},
+		{
+			"3d matrix", [][]float64{{-0.444, 1.98, 343.89}, {0, 8.77, 1.034}, {-34, 34, -11.90}}, 102533.457756, false,
+		},
+		{
+			"4d non-zero matrix", [][]float64{{4, 3, 1.01, 0}, {32, 1.1, 1, -2}, {0, 3, 6.012, 7}, {9, 3.45, -0.34, 12}}, -6705.8302, false,
+		},
+	}
+	for _, testCase := range testCases {
+		matA, _ := NewMatrixFromSlice(testCase.matA)
+		det, err := matA.Det()
+		if testCase.expErr {
+			if err == nil {
+				t.Fatalf("Expected error while calculating determinant of of\n%s\n, but received none", matA)
+			}
+		} else {
+			if err != nil {
+				t.Fatalf("Expected no error while calculating determinant of\n%s\n, but received one: %q", matA, err)
+			} else {
+				t.Run(testCase.name, func(t *testing.T) {
+					if !utils.FloatEqual(det, testCase.expDet) {
+						t.Fatalf("Expected determinant of\n%s\nto be:%f but, got: %f", matA, testCase.expDet, det)
+					}
+				})
+			}
+		}
+	}
+}
+
+// TestInverse checks if matrix inverses are computed correctly
+func TestInverse(t *testing.T) {
+	testCases := []struct {
+		name   string
+		matA   [][]float64
+		expInv [][]float64
+		expErr bool
+	}{
+		{
+			"rectangle matrix", [][]float64{{0, 0, 0.4}, {1.3, 0, 0}}, [][]float64{{}}, true,
+		},
+		{
+			"2d zero matrix", [][]float64{{0, 0}, {0, 0}}, [][]float64{{}}, true,
+		},
+		{
+			"2d identity matrix", [][]float64{{1, 0}, {0, 1}}, [][]float64{{1, 0}, {0, 1}}, false,
+		},
+		{
+			"2d non-zero matrix", [][]float64{{3.43, 1}, {2, 1}}, [][]float64{{1 / 1.43, -1 / 1.43}, {-2 / 1.43, 3.43 / 1.43}}, false,
+		},
+		{
+			"3d identity matrix", [][]float64{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, [][]float64{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, false,
+		},
+		{
+			"3d matrix", [][]float64{{-0.444, 1.98, 343.89}, {0, 8.77, 1.034}, {-34, 34, -11.90}}, [][]float64{{-0.001361, 0.114263, -0.029394}, {-0.000343, 0.114085, 0.00000447}, {0.002908, -0.000509, -0.000038}}, false,
+		},
+		{
+			"4d non-zero matrix", [][]float64{{4, 3, 1.01, 0}, {32, 1.1, 1, -2}, {0, 3, 6.012, 7}, {9, 3.45, -0.34, 12}}, [][]float64{{-0.016948, 0.031555, -0.002037, 0.006447}, {0.381158, -0.053942, -0.053795, 0.022390}, {-0.074935, 0.035253, 0.167854, -0.092039}, {-0.098995, -0.007159, 0.021749, 0.069453}}, false,
+		},
+	}
+	for _, testCase := range testCases {
+		matA, _ := NewMatrixFromSlice(testCase.matA)
+		matInv, _ := NewMatrixFromSlice(testCase.expInv)
+		inv, err := matA.Inverse()
+		if testCase.expErr {
+			if err == nil {
+				t.Fatalf("Expected error while calculating inverse of of\n%s\n, but received none", matA)
+			}
+		} else {
+			if err != nil {
+				t.Fatalf("Expected no error while calculating inverse of\n%s\n, but received one: %q", matA, err)
+			} else {
+				t.Run(testCase.name, func(t *testing.T) {
+					if !inv.IsEqualTo(matInv) {
+						t.Fatalf("Expected inverse of\n%s\nto be:\n%s\n but, got:\n%s\n", matA, matInv, inv)
+					}
+				})
+			}
+		}
+	}
+}
+
+// TestInverseMultiplication multiplies B x A and tests if
+// multiplying the product with inverse of A returns matrix B
+func TestInverseMultiplication(t *testing.T) {
+	matA, _ := NewMatrixFromSlice([][]float64{{4, 3, 1.01, 0}, {32, 1.1, 1, -2}, {0, 3, 6.012, 7}, {9, 3.45, -0.34, 12}})
+	matB, _ := NewMatrixFromSlice([][]float64{{1.01, 0, -23, 0.89}, {0.1, 33, 32, 1.1}})
+	prod, _ := matB.Multiply(matA)
+
+	matAInv, _ := matA.Inverse()
+	matC, _ := prod.Multiply(matAInv)
+
+	if !matC.IsEqualTo(matB) {
+		t.Fatalf("Expected\n%s\nto equal\n%s\n", matC, matB)
+	}
+
 }
