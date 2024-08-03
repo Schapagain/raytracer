@@ -1,8 +1,11 @@
+// package matrices provides functions to work with matrices
+// and methods for various matrix operations
 package matrices
 
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 
 	"github.com/schapagain/raytracer/tuples"
@@ -21,6 +24,10 @@ type Matrix interface {
 	Multiply(Matrix) (Matrix, error)
 	Transposed() Matrix
 	SubMatrix(int, int) (Matrix, error)
+	Det() (float64, error)
+	Cofactor(int, int) (float64, error)
+	Minor(int, int) (float64, error)
+	Inverse() (Matrix, error)
 }
 
 type matrix struct {
@@ -32,6 +39,7 @@ var (
 	ErrOutOfBounds          = errors.New("matrices: index is out of bounds")
 	ErrInvalidInitialValues = errors.New("matrices: invalid values for initialization")
 	ErrDimensionMismatch    = errors.New("matrices: matrix dimensions are not compatible for the operation")
+	ErrMatrixNotInvertible  = errors.New("matrics: given matrix is not invertible")
 )
 
 // NewMatrix returns a rows X cols matrix initialized with zeros
@@ -88,9 +96,15 @@ func NewMatrixFromSlice(initialValues [][]float64) (Matrix, error) {
 	return mat, nil
 }
 
-// NewMatrixFromVector returns a column matrix representation of v
+// NewMatrixFromTuple returns a column matrix representation of Vector v
 func NewMatrixFromVector(v tuples.Vector) Matrix {
-	mat, _ := NewMatrixFromSlice([][]float64{{v.X}, {v.Y}, {v.Z}})
+	mat, _ := NewMatrixFromSlice([][]float64{{v.X}, {v.Y}, {v.Z}, {0}})
+	return mat
+}
+
+// NewMatrixFromPoint returns a column matrix representation of Point p
+func NewMatrixFromPoint(p tuples.Point) Matrix {
+	mat, _ := NewMatrixFromSlice([][]float64{{p.X}, {p.Y}, {p.Z}, {1}})
 	return mat
 }
 
@@ -209,7 +223,6 @@ func (m1 *matrix) Multiply(m2 Matrix) (Matrix, error) {
 // built by swapping rows and columns of matrix m
 func (m *matrix) Transposed() Matrix {
 	mat, _ := NewMatrix(m.Cols(), m.Rows())
-
 	for i := 0; i < m.Rows(); i++ {
 		for j := 0; j < m.Cols(); j++ {
 			mVal, _ := m.Get(i, j)
@@ -225,7 +238,6 @@ func (m *matrix) SubMatrix(row, col int) (Matrix, error) {
 		return nil, ErrOutOfBounds
 	}
 	mat, _ := NewMatrix(m.Rows()-1, m.Cols()-1)
-	fmt.Printf("Start: %d %d\n", row, col)
 	ct := 0
 	for i := 0; i < m.Rows(); i++ {
 		if i != row {
@@ -239,4 +251,59 @@ func (m *matrix) SubMatrix(row, col int) (Matrix, error) {
 		}
 	}
 	return mat, nil
+}
+
+// Minor returns the determinant of the submatrix of m
+// formed after removing row and col
+func (m *matrix) Minor(row, col int) (float64, error) {
+	subMat, err := m.SubMatrix(row, col)
+	if err != nil {
+		return 0, err
+	}
+	return subMat.Det()
+}
+
+// Cofactor returns the cofactor of matrix m at row,col
+func (m *matrix) Cofactor(row, col int) (float64, error) {
+	minor, err := m.Minor(row, col)
+	if err != nil {
+		return 0, err
+	}
+	return minor * math.Pow(-1, float64(col+row)), nil
+}
+
+// Det returns the determinant of matrix m
+func (m *matrix) Det() (float64, error) {
+	if m.Rows() != m.Cols() {
+		return 0, ErrDimensionMismatch
+	}
+	if m.Rows() < 2 {
+		return m.data[0], nil
+	}
+	det := 0.0
+	for colNum := 0; colNum < m.Cols(); colNum++ {
+		cofac, _ := m.Cofactor(0, colNum)
+		val, _ := m.Get(0, colNum)
+		det += val * cofac
+	}
+	return det, nil
+}
+
+// Inverse returns the inverse of matrix m
+func (m *matrix) Inverse() (Matrix, error) {
+	det, err := m.Det()
+	if err != nil {
+		return nil, err
+	}
+	if utils.FloatEqual(0, det) {
+		return nil, ErrMatrixNotInvertible
+	}
+	invMat, _ := NewMatrix(m.Rows(), m.Cols())
+	for i := 0; i < m.Rows(); i++ {
+		for j := 0; j < m.Cols(); j++ {
+			cof, _ := m.Cofactor(i, j)
+			invMat.Set(j, i, cof/det)
+		}
+	}
+	return invMat, nil
 }
