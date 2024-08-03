@@ -1,3 +1,6 @@
+// package canvas provides Canvas interface implemented as
+// an array of pixels, and provides methods for drawing,
+// saving to a file (as a plain PPM), etc.
 package canvas
 
 import (
