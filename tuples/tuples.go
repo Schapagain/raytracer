@@ -1,3 +1,5 @@
+// package tuples provides several methods to work
+// with points and vectors
 package tuples
 
 import (
@@ -7,6 +9,28 @@ import (
 	"github.com/schapagain/raytracer/errors"
 	"github.com/schapagain/raytracer/utils"
 )
+
+type Tuple interface {
+	Point | Vector
+}
+
+type Point struct {
+	X, Y, Z float64
+}
+
+type Vector struct {
+	X, Y, Z float64
+}
+
+// NewPoint returns a new Point with the given coordinates
+func NewPoint(x, y, z float64) Point {
+	return Point{X: x, Y: y, Z: z}
+}
+
+// NewVector returns a new Vector with the given components
+func NewVector(x, y, z float64) Vector {
+	return Vector{X: x, Y: y, Z: z}
+}
 
 // String returns the string representation of p
 func (p Point) String() string {
@@ -25,18 +49,18 @@ func (p1 Point) IsEqualTo(p2 Point) bool {
 // Move moves the point forwards along direction of v
 // by |v| units
 func (p Point) Move(v Vector) Point {
-	return Point{p.X + v.X, p.Y + v.Y, p.Z + v.Z}
+	return NewPoint(p.X+v.X, p.Y+v.Y, p.Z+v.Z)
 }
 
 // MoveBack moves the point backwards along direction of v
 // by |v| units
 func (p Point) MoveBack(v Vector) Point {
-	return Point{p.X - v.X, p.Y - v.Y, p.Z - v.Z}
+	return NewPoint(p.X-v.X, p.Y-v.Y, p.Z-v.Z)
 }
 
 // Subtract returns the direction vector from p2 to p1
 func (p1 Point) Subtract(p2 Point) Vector {
-	return Vector{p1.X - p2.X, p1.Y - p2.Y, p1.Z - p2.Z}
+	return NewVector(p1.X-p2.X, p1.Y-p2.Y, p1.Z-p2.Z)
 }
 
 // String returns the string representation of v
@@ -55,17 +79,17 @@ func (v1 Vector) IsEqualTo(v2 Vector) bool {
 
 // Add returns the resultant vector adding v1 and v2
 func (v1 Vector) Add(v2 Vector) Vector {
-	return Vector{v1.X + v2.X, v1.Y + v2.Y, v1.Z + v2.Z}
+	return NewVector(v1.X+v2.X, v1.Y+v2.Y, v1.Z+v2.Z)
 }
 
 // Subtract returns the difference between t1 and t2
 func (t1 Vector) Subtract(t2 Vector) Vector {
-	return Vector{t1.X - t2.X, t1.Y - t2.Y, t1.Z - t2.Z}
+	return NewVector(t1.X-t2.X, t1.Y-t2.Y, t1.Z-t2.Z)
 }
 
 // Multiply returns the result of multiplying t with scaler s
 func (t Vector) Multiply(s float64) Vector {
-	return Vector{s * t.X, s * t.Y, s * t.Z}
+	return NewVector(s*t.X, s*t.Y, s*t.Z)
 }
 
 // Divide returns the result of dividing t with scaler s
@@ -74,15 +98,15 @@ func (t Vector) Multiply(s float64) Vector {
 func (t Vector) Divide(s float64) (Vector, error) {
 	if utils.FloatEqual(0, s) {
 		return Vector{}, &errors.DivisionByZeroError{
-			Details:fmt.Sprintf("Cannot divide %s by zero", t.String())}
+			Details: fmt.Sprintf("Cannot divide %s by zero", t.String())}
 	}
-	return Vector{t.X / s, t.Y / s, t.Z / s}, nil
+	return NewVector(t.X/s, t.Y/s, t.Z/s), nil
 }
 
 // Negated returns the negated version of t
 // that has all X,Y, and Z elements negated
 func (t Vector) Negated() Vector {
-	return Vector{-t.X, -t.Y, -t.Z}
+	return NewVector(-t.X, -t.Y, -t.Z)
 }
 
 // Magnitude returns the magnitude of the vector represented by t
@@ -103,5 +127,5 @@ func (v1 Vector) Dot(v2 Vector) float64 {
 
 // Cross returns the cross product between v1 and v2
 func (v1 Vector) Cross(v2 Vector) Vector {
-	return Vector{v1.Y*v2.Z - v1.Z*v2.Y, v2.X*v1.Z - v2.Z*v1.X, v1.X*v2.Y - v1.Y*v2.X}
+	return NewVector(v1.Y*v2.Z-v1.Z*v2.Y, v2.X*v1.Z-v2.Z*v1.X, v1.X*v2.Y-v1.Y*v2.X)
 }

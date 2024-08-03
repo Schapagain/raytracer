@@ -14,7 +14,7 @@ var ErrStringToFloatConversion = errors.New("error converting strings to floats"
 // checks if its String() method returns
 // the expected string format
 func TestPointStringRepr(t *testing.T) {
-	p := Point{-3, 1, 9}
+	p := NewPoint(-3, 1, 9)
 	pStringExpected := "(-3.000,1.000,9.000)"
 	if p.String() != pStringExpected {
 		t.Fatalf("Expected %s, but got %s", pStringExpected, p)
@@ -25,7 +25,7 @@ func TestPointStringRepr(t *testing.T) {
 // checks if its String() method returns
 // the expected string format
 func TestVectorStringRepr(t *testing.T) {
-	v := Vector{1, 2.0, 3}
+	v := NewVector(1, 2.0, 3)
 	vStringExpected := "<1.000,2.000,3.000>"
 	if v.String() != vStringExpected {
 		t.Fatalf("Expected %s, but got %s", vStringExpected, v)
@@ -42,15 +42,15 @@ func TestPointEquality(t *testing.T) {
 		expectEqual bool
 	}{
 		{
-			"varying decimal places", Point{1, 2, 3}, Point{1.00, 2.0, 3}, true,
+			"varying decimal places", NewPoint(1, 2, 3), NewPoint(1.00, 2.0, 3), true,
 		}, {
-			"containing negative coords", Point{-1, 2, -3}, Point{-1.00, 2.0, -3}, true,
+			"containing negative coords", NewPoint(-1, 2, -3), NewPoint(-1.00, 2.0, -3), true,
 		}, {
-			"differing X coord", Point{0.99, 2, 3}, Point{1.00, 2.0, 3}, false,
+			"differing X coord", NewPoint(0.99, 2, 3), NewPoint(1.00, 2.0, 3), false,
 		}, {
-			"differing Y coord", Point{1, 2.11, 3}, Point{1.00, 2.0, 3}, false,
+			"differing Y coord", NewPoint(1, 2.11, 3), NewPoint(1.00, 2.0, 3), false,
 		}, {
-			"differing Z coord", Point{1, 2, 3.001}, Point{1.00, 2.0, 3}, false,
+			"differing Z coord", NewPoint(1, 2, 3.001), NewPoint(1.00, 2.0, 3), false,
 		},
 	}
 
@@ -76,17 +76,17 @@ func TestVectorEquality(t *testing.T) {
 		expectEqual bool
 	}{
 		{
-			"varying decimal places", Vector{1, 2, 3}, Vector{1.00, 2.0, 3}, true,
+			"varying decimal places", NewVector(1, 2, 3), NewVector(1.00, 2.0, 3), true,
 		}, {
-			"containing negative coords", Vector{-1, 2, -3}, Vector{-1.00, 2.0, -3}, true,
+			"containing negative coords", NewVector(-1, 2, -3), NewVector(-1.00, 2.0, -3), true,
 		}, {
-			"differing X coord", Vector{0.99, 2, 3}, Vector{1.00, 2.0, 3}, false,
+			"differing X coord", NewVector(0.99, 2, 3), NewVector(1.00, 2.0, 3), false,
 		}, {
-			"differing Y coord", Vector{1, 2.11, 3}, Vector{1.00, 2.0, 3}, false,
+			"differing Y coord", NewVector(1, 2.11, 3), NewVector(1.00, 2.0, 3), false,
 		}, {
-			"differing Z coord", Vector{1, 2, 3.001}, Vector{1.00, 2.0, 3}, false,
+			"differing Z coord", NewVector(1, 2, 3.001), NewVector(1.00, 2.0, 3), false,
 		}, {
-			"approx. equal coords", Vector{1, 2, 3}, Vector{1.0000001, 1.9999999, 3.0000000001}, true,
+			"approx. equal coords", NewVector(1, 2, 3), NewVector(1.0000001, 1.9999999, 3.0000000001), true,
 		},
 	}
 
@@ -106,10 +106,10 @@ func TestVectorEquality(t *testing.T) {
 // and checks if subtracting p1 from p2
 // returns a direction vector p2 -> p1
 func TestPointSubtraction(t *testing.T) {
-	p1 := Point{-1, 2, 4}
-	p2 := Point{4, -1, -9.1}
+	p1 := NewPoint(-1, 2, 4)
+	p2 := NewPoint(4, -1, -9.1)
 	diffV := p1.Subtract(p2)
-	expV := Vector{-5, 3, 13.1}
+	expV := NewVector(-5, 3, 13.1)
 	if !diffV.IsEqualTo(expV) {
 		t.Fatalf("Expected %s, but got %s", expV, diffV)
 	}
@@ -119,10 +119,10 @@ func TestPointSubtraction(t *testing.T) {
 // and checks if moving the point along the vector
 // returns the correct destination point
 func TestPointMove(t *testing.T) {
-	p := Point{-1, 2, 4}
-	v := Vector{4, -1, -9.1}
+	p := NewPoint(-1, 2, 4)
+	v := NewVector(4, -1, -9.1)
 	destP := p.Move(v)
-	expDestP := Point{-1 + 4, 2 - 1, 4 - 9.1}
+	expDestP := NewPoint(-1+4, 2-1, 4-9.1)
 	if !destP.IsEqualTo(expDestP) {
 		t.Fatalf("Expected %s, but got %s", expDestP, destP)
 	}
@@ -132,10 +132,10 @@ func TestPointMove(t *testing.T) {
 // and checks if moving the point backwards along the vector
 // returns the correct destination point
 func TestPointMoveBack(t *testing.T) {
-	p := Point{-1, 2, 4}
-	v := Vector{4, -1, -9.1}
+	p := NewPoint(-1, 2, 4)
+	v := NewVector(4, -1, -9.1)
 	destP := p.MoveBack(v)
-	expDestP := Point{-1 - 4, 2 + 1, 4 + 9.1}
+	expDestP := NewPoint(-1-4, 2+1, 4+9.1)
 	if !destP.IsEqualTo(expDestP) {
 		t.Fatalf("Expected %s, but got %s", expDestP, destP)
 	}
@@ -145,10 +145,10 @@ func TestPointMoveBack(t *testing.T) {
 // and checks if adding v1 from v2
 // returns a resultant vector
 func TestVectorAddition(t *testing.T) {
-	v1 := Vector{-1, 2, 4}
-	v2 := Vector{4, -1, -9.1}
+	v1 := NewVector(-1, 2, 4)
+	v2 := NewVector(4, -1, -9.1)
 	sumV := v1.Add(v2)
-	expV := Vector{3, 1, -5.1}
+	expV := NewVector(3, 1, -5.1)
 	if !sumV.IsEqualTo(expV) {
 		t.Fatalf("Expected %s, but got %s", expV, sumV)
 	}
@@ -158,10 +158,10 @@ func TestVectorAddition(t *testing.T) {
 // and checks if subtracting v1 from v2
 // returns a difference vector
 func TestVectorSubtraction(t *testing.T) {
-	v1 := Vector{-1, 2, 4}
-	v2 := Vector{4, -1, -9.1}
+	v1 := NewVector(-1, 2, 4)
+	v2 := NewVector(4, -1, -9.1)
 	diffV := v1.Subtract(v2)
-	expV := Vector{-5, 3, 13.1}
+	expV := NewVector(-5, 3, 13.1)
 	if !diffV.IsEqualTo(expV) {
 		t.Fatalf("Expected %s, but got %s", expV, diffV)
 	}
@@ -183,9 +183,9 @@ func TestVectorNegation(t *testing.T) {
 
 	for _, c := range testCases {
 		t.Run(c.name, func(t *testing.T) {
-			v := Vector{c.X, c.Y, c.Z}
+			v := NewVector(c.X, c.Y, c.Z)
 			negV := v.Negated()
-			expV := Vector{c.eX, c.eY, c.eZ}
+			expV := NewVector(c.eX, c.eY, c.eZ)
 			if !negV.IsEqualTo(expV) {
 				t.Fatalf("Expected %s, but got %s", expV, negV)
 			}
@@ -213,9 +213,9 @@ func TestVectorScalerMultiplication(t *testing.T) {
 
 	for _, c := range testCases {
 		t.Run(c.name, func(t *testing.T) {
-			v := Vector{c.X, c.Y, c.Z}
+			v := NewVector(c.X, c.Y, c.Z)
 			scaledV := v.Multiply(c.s)
-			expV := Vector{c.eX, c.eY, c.eZ}
+			expV := NewVector(c.eX, c.eY, c.eZ)
 			if !scaledV.IsEqualTo(expV) {
 				t.Fatalf("Expected %s, but got %s", expV, scaledV)
 			}
@@ -244,9 +244,9 @@ func TestVectorScalerDivision(t *testing.T) {
 
 	for _, c := range testCases {
 		t.Run(c.name, func(t *testing.T) {
-			v := Vector{c.X, c.Y, c.Z}
+			v := NewVector(c.X, c.Y, c.Z)
 			scaledV, err := v.Divide(c.d)
-			expV := Vector{c.eX, c.eY, c.eZ}
+			expV := NewVector(c.eX, c.eY, c.eZ)
 			if c.errorExpected && err == nil {
 				t.Fatalf("Error expected but received none")
 			} else if !c.errorExpected {
@@ -279,7 +279,7 @@ func TestVectorMagnitude(t *testing.T) {
 
 	for _, c := range testCases {
 		t.Run(c.name, func(t *testing.T) {
-			v := Vector{c.X, c.Y, c.Z}
+			v := NewVector(c.X, c.Y, c.Z)
 			magV := v.Magnitude()
 			if !utils.FloatEqual(magV, c.expM) {
 				t.Fatalf("Expected magnitude of %s to be %f, but got %f", v, c.expM, magV)
@@ -305,9 +305,9 @@ func TestVectorNormalization(t *testing.T) {
 
 	for _, c := range testCases {
 		t.Run(c.name, func(t *testing.T) {
-			v := Vector{c.X, c.Y, c.Z}
+			v := NewVector(c.X, c.Y, c.Z)
 			vNorm, err := v.Normalized()
-			vExpNorm := Vector{c.expX, c.expY, c.expZ}
+			vExpNorm := NewVector(c.expX, c.expY, c.expZ)
 			if c.errorExpected && err == nil {
 				t.Fatalf("Error expected but received none")
 			} else if !c.errorExpected {
@@ -337,9 +337,9 @@ func TestDotProduct(t *testing.T) {
 		v2   Vector
 		expD float64
 	}{
-		{"all positive coords", Vector{1, 2, 5}, Vector{3, 1, 4}, 25},
-		{"containing negative coords", Vector{-1, 2, -3}, Vector{-1.00, 2.0, -3}, 14},
-		{"zero vector", Vector{0, 0, 0}, Vector{4, -3.4, 1}, 0},
+		{"all positive coords", NewVector(1, 2, 5), NewVector(3, 1, 4), 25},
+		{"containing negative coords", NewVector(-1, 2, -3), NewVector(-1.00, 2.0, -3), 14},
+		{"zero vector", NewVector(0, 0, 0), NewVector(4, -3.4, 1), 0},
 	}
 
 	for _, testCase := range testCases {
@@ -361,14 +361,14 @@ func TestCrossProduct(t *testing.T) {
 		v2       Vector
 		expCross Vector
 	}{
-		{"zero vector", Vector{0, 0, 0}, Vector{4, -3.4, 1}, Vector{0, 0, 0}},
-		{"unit-x cross unit-y", Vector{1, 0, 0}, Vector{0, 1, 0}, Vector{0, 0, 1}},
-		{"unit-y cross unit-x", Vector{0, 1, 0}, Vector{1, 0, 0}, Vector{0, 0, -1}},
-		{"unit-y cross unit-z", Vector{0, 1, 0}, Vector{0, 0, 1}, Vector{1, 0, 0}},
-		{"unit-z cross unit-y", Vector{0, 0, 1}, Vector{0, 1, 0}, Vector{-1, 0, 0}},
-		{"unit-z cross unit-x", Vector{0, 0, 1}, Vector{1, 0, 0}, Vector{0, 1, 0}},
-		{"unit-x cross unit-z", Vector{1, 0, 0}, Vector{0, 0, 1}, Vector{0, -1, 0}},
-		{"non unit vectors", Vector{3, -3, 1}, Vector{4, 9, 2}, Vector{-15, -2, 39}},
+		{"zero vector", NewVector(0, 0, 0), NewVector(4, -3.4, 1), NewVector(0, 0, 0)},
+		{"unit-x cross unit-y", NewVector(1, 0, 0), NewVector(0, 1, 0), NewVector(0, 0, 1)},
+		{"unit-y cross unit-x", NewVector(0, 1, 0), NewVector(1, 0, 0), NewVector(0, 0, -1)},
+		{"unit-y cross unit-z", NewVector(0, 1, 0), NewVector(0, 0, 1), NewVector(1, 0, 0)},
+		{"unit-z cross unit-y", NewVector(0, 0, 1), NewVector(0, 1, 0), NewVector(-1, 0, 0)},
+		{"unit-z cross unit-x", NewVector(0, 0, 1), NewVector(1, 0, 0), NewVector(0, 1, 0)},
+		{"unit-x cross unit-z", NewVector(1, 0, 0), NewVector(0, 0, 1), NewVector(0, -1, 0)},
+		{"non unit vectors", NewVector(3, -3, 1), NewVector(4, 9, 2), NewVector(-15, -2, 39)},
 	}
 
 	for _, testCase := range testCases {
