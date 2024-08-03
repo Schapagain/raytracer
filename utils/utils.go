@@ -1,3 +1,5 @@
+// package utils provides several utility functions
+// to use throughout the modules
 package utils
 
 import (
